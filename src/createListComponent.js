@@ -1,7 +1,8 @@
 // @flow
 
 import memoizeOne from 'memoize-one';
-import { createElement, PureComponent } from 'react';
+import { createElement } from 'inferno-create-element';
+import { PureComponent } from './PureComponent';
 import { cancelTimeout, requestTimeout } from './timer';
 
 import type { TimeoutID } from './timer';
@@ -112,10 +113,8 @@ const defaultItemKey = (index: number, data: any) => index;
 let devWarningsDirection = null;
 let devWarningsTagName = null;
 if (process.env.NODE_ENV !== 'production') {
-  if (typeof window !== 'undefined' && typeof window.WeakSet !== 'undefined') {
-    devWarningsDirection = new WeakSet();
-    devWarningsTagName = new WeakSet();
-  }
+  devWarningsDirection = new WeakSet();
+  devWarningsTagName = new WeakSet();
 }
 
 export default function createListComponent({
@@ -239,7 +238,7 @@ export default function createListComponent({
 
     componentWillUnmount() {
       if (this._resetIsScrollingTimeoutId !== null) {
-        cancelTimeout(this._resetIsScrollingTimeoutId);
+        cancelTimeout(this._resetIsScrollingTimeoutId, this._outerRef);
       }
     }
 
@@ -304,11 +303,11 @@ export default function createListComponent({
           ref: this._outerRefSetter,
           style: {
             position: 'relative',
-            height,
-            width,
+            height: `${height}px`,
+            width: `${width}px`,
             overflow: 'auto',
             WebkitOverflowScrolling: 'touch',
-            willChange: 'transform',
+            'will-change': 'transform',
             direction,
             ...style,
           },
@@ -317,9 +316,9 @@ export default function createListComponent({
           children: items,
           ref: innerRef,
           style: {
-            height: isHorizontal ? '100%' : estimatedTotalSize,
+            height: isHorizontal ? '100%' : `${estimatedTotalSize}px`,
             pointerEvents: isScrolling ? 'none' : '',
-            width: isHorizontal ? estimatedTotalSize : '100%',
+            width: isHorizontal ? `${estimatedTotalSize}px` : '100%',
           },
         })
       );
@@ -425,9 +424,9 @@ export default function createListComponent({
         itemStyleCache[index] = style = {
           position: 'absolute',
           [direction === 'rtl' ? 'right' : 'left']: isHorizontal ? offset : 0,
-          top: !isHorizontal ? offset : 0,
-          height: !isHorizontal ? size : '100%',
-          width: isHorizontal ? size : '100%',
+          top: !isHorizontal ? `${offset}px` : 0,
+          height: !isHorizontal ? `${size}px` : '100%',
+          width: isHorizontal ? `${size}px` : '100%',
         };
       }
 
@@ -548,12 +547,13 @@ export default function createListComponent({
 
     _resetIsScrollingDebounced = () => {
       if (this._resetIsScrollingTimeoutId !== null) {
-        cancelTimeout(this._resetIsScrollingTimeoutId);
+        cancelTimeout(this._resetIsScrollingTimeoutId, this._outerRef);
       }
 
       this._resetIsScrollingTimeoutId = requestTimeout(
         this._resetIsScrolling,
-        IS_SCROLLING_DEBOUNCE_INTERVAL
+        IS_SCROLLING_DEBOUNCE_INTERVAL,
+        this._outerRef
       );
     };
 
@@ -589,8 +589,8 @@ const validateSharedProps = (
 ): void => {
   if (process.env.NODE_ENV !== 'production') {
     if (innerTagName != null || outerTagName != null) {
-      if (devWarningsTagName && !devWarningsTagName.has(instance)) {
-        devWarningsTagName.add(instance);
+      if (!((devWarningsTagName: any): WeakSet<any>).has(instance)) {
+        ((devWarningsTagName: any): WeakSet<any>).add(instance);
         console.warn(
           'The innerTagName and outerTagName props have been deprecated. ' +
             'Please use the innerElementType and outerElementType props instead.'
@@ -604,8 +604,8 @@ const validateSharedProps = (
     switch (direction) {
       case 'horizontal':
       case 'vertical':
-        if (devWarningsDirection && !devWarningsDirection.has(instance)) {
-          devWarningsDirection.add(instance);
+        if (!((devWarningsDirection: any): WeakSet<any>).has(instance)) {
+          ((devWarningsDirection: any): WeakSet<any>).add(instance);
           console.warn(
             'The direction prop should be either "ltr" (default) or "rtl". ' +
               'Please use the layout prop to specify "vertical" (default) or "horizontal" orientation.'

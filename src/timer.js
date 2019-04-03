@@ -14,24 +14,28 @@ export type TimeoutID = {|
   id: AnimationFrameID,
 |};
 
-export function cancelTimeout(timeoutID: TimeoutID) {
-  cancelAnimationFrame(timeoutID.id);
+export function cancelTimeout(timeoutID: TimeoutID, ref: Node) {
+  ownerWindow(ref).cancelAnimationFrame(timeoutID.id);
 }
 
-export function requestTimeout(callback: Function, delay: number): TimeoutID {
+export function requestTimeout(callback: Function, delay: number, ref: Node): TimeoutID {
   const start = now();
 
   function tick() {
     if (now() - start >= delay) {
       callback.call(null);
     } else {
-      timeoutID.id = requestAnimationFrame(tick);
+      timeoutID.id = ownerWindow(ref).requestAnimationFrame(tick);
     }
   }
 
   const timeoutID: TimeoutID = {
-    id: requestAnimationFrame(tick),
+    id: ownerWindow(ref).requestAnimationFrame(tick),
   };
 
   return timeoutID;
+}
+
+function ownerWindow(ref: Node): Window {
+  return ref.ownerDocument.defaultView;
 }
