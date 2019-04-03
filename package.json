@@ -1,6 +1,6 @@
 {
   "name": "inferno-window",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "Inferno components for efficiently rendering large, scrollable lists and tabular data. NOTE: this is a port from the origin project written in react by @bvaughn",
   "author": "Rasmus Josefsson <rajjejosefsson@gmail.com> (https://github.com/rajjejosefsson/)",
   "license": "MIT",

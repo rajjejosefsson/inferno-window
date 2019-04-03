@@ -10,9 +10,13 @@
 npm install --save inferno-window
 ```
 
+## Demo
+
+[https://codesandbox.io/s/z2k6v6o7wp](https://codesandbox.io/s/z2k6v6o7wp)
+
 ## Usage
 
-Learn more from the origin projects documentation page [react-window.now.sh](https://react-window.now.sh/):
+Learn more from the origin project documentation page [react-window.now.sh](https://react-window.now.sh/):
 
 ## Related libraries
 

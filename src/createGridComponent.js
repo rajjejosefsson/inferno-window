@@ -133,8 +133,10 @@ const defaultItemKey = ({ columnIndex, data, rowIndex }) =>
 let devWarningsOverscanCount = null;
 let devWarningsTagName = null;
 if (process.env.NODE_ENV !== 'production') {
-  devWarningsOverscanCount = new WeakSet();
-  devWarningsTagName = new WeakSet();
+  if (typeof window !== 'undefined' && typeof window.WeakSet !== 'undefined') {
+    devWarningsOverscanCount = new WeakSet();
+    devWarningsTagName = new WeakSet();
+  }
 }
 
 export default function createGridComponent({
@@ -246,8 +248,8 @@ export default function createGridComponent({
       rowIndex,
     }: {
       align: ScrollToAlign,
-      columnIndex: number,
-      rowIndex: number,
+      columnIndex?: number,
+      rowIndex?: number,
     }): void {
       const { height, width } = this.props;
       const { scrollLeft, scrollTop } = this.state;
@@ -271,22 +273,28 @@ export default function createGridComponent({
         estimatedTotalHeight > height ? scrollbarSize : 0;
 
       this.scrollTo({
-        scrollLeft: getOffsetForColumnAndAlignment(
-          this.props,
-          columnIndex,
-          align,
-          scrollLeft,
-          this._instanceProps,
-          verticalScrollbarSize
-        ),
-        scrollTop: getOffsetForRowAndAlignment(
-          this.props,
-          rowIndex,
-          align,
-          scrollTop,
-          this._instanceProps,
-          horizontalScrollbarSize
-        ),
+        scrollLeft:
+          columnIndex !== undefined
+            ? getOffsetForColumnAndAlignment(
+                this.props,
+                columnIndex,
+                align,
+                scrollLeft,
+                this._instanceProps,
+                verticalScrollbarSize
+              )
+            : scrollLeft,
+        scrollTop:
+          rowIndex !== undefined
+            ? getOffsetForRowAndAlignment(
+                this.props,
+                rowIndex,
+                align,
+                scrollTop,
+                this._instanceProps,
+                horizontalScrollbarSize
+              )
+            : scrollTop,
       });
     }
 
@@ -719,7 +727,7 @@ export default function createGridComponent({
         this._resetIsScrolling,
         IS_SCROLLING_DEBOUNCE_INTERVAL,
         this._outerRef
-      );
+        );
     };
 
     _resetIsScrolling = () => {
@@ -748,8 +756,8 @@ const validateSharedProps = (
 ): void => {
   if (process.env.NODE_ENV !== 'production') {
     if (typeof overscanCount === 'number') {
-      if (!((devWarningsOverscanCount: any): WeakSet<any>).has(instance)) {
-        ((devWarningsOverscanCount: any): WeakSet<any>).add(instance);
+      if (devWarningsOverscanCount && !devWarningsOverscanCount.has(instance)) {
+        devWarningsOverscanCount.add(instance);
         console.warn(
           'The overscanCount prop has been deprecated. ' +
             'Please use the overscanColumnsCount and overscanRowsCount props instead.'
@@ -758,8 +766,8 @@ const validateSharedProps = (
     }
 
     if (innerTagName != null || outerTagName != null) {
-      if (!((devWarningsTagName: any): WeakSet<any>).has(instance)) {
-        ((devWarningsTagName: any): WeakSet<any>).add(instance);
+      if (devWarningsTagName && !devWarningsTagName.has(instance)) {
+        devWarningsTagName.add(instance);
         console.warn(
           'The innerTagName and outerTagName props have been deprecated. ' +
             'Please use the innerElementType and outerElementType props instead.'
