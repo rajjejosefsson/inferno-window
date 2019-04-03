@@ -1,7 +1,8 @@
 // @flow
 
 import memoizeOne from 'memoize-one';
-import { createElement, PureComponent } from 'react';
+import { PureComponent } from './PureComponent';
+import { createElement } from 'inferno-create-element';
 import { cancelTimeout, requestTimeout } from './timer';
 import { getScrollbarSize } from './domHelpers';
 
@@ -132,10 +133,8 @@ const defaultItemKey = ({ columnIndex, data, rowIndex }) =>
 let devWarningsOverscanCount = null;
 let devWarningsTagName = null;
 if (process.env.NODE_ENV !== 'production') {
-  if (typeof window !== 'undefined' && typeof window.WeakSet !== 'undefined') {
-    devWarningsOverscanCount = new WeakSet();
-    devWarningsTagName = new WeakSet();
-  }
+  devWarningsOverscanCount = new WeakSet();
+  devWarningsTagName = new WeakSet();
 }
 
 export default function createGridComponent({
@@ -247,8 +246,8 @@ export default function createGridComponent({
       rowIndex,
     }: {
       align: ScrollToAlign,
-      columnIndex?: number,
-      rowIndex?: number,
+      columnIndex: number,
+      rowIndex: number,
     }): void {
       const { height, width } = this.props;
       const { scrollLeft, scrollTop } = this.state;
@@ -272,28 +271,22 @@ export default function createGridComponent({
         estimatedTotalHeight > height ? scrollbarSize : 0;
 
       this.scrollTo({
-        scrollLeft:
-          columnIndex !== undefined
-            ? getOffsetForColumnAndAlignment(
-                this.props,
-                columnIndex,
-                align,
-                scrollLeft,
-                this._instanceProps,
-                verticalScrollbarSize
-              )
-            : scrollLeft,
-        scrollTop:
-          rowIndex !== undefined
-            ? getOffsetForRowAndAlignment(
-                this.props,
-                rowIndex,
-                align,
-                scrollTop,
-                this._instanceProps,
-                horizontalScrollbarSize
-              )
-            : scrollTop,
+        scrollLeft: getOffsetForColumnAndAlignment(
+          this.props,
+          columnIndex,
+          align,
+          scrollLeft,
+          this._instanceProps,
+          verticalScrollbarSize
+        ),
+        scrollTop: getOffsetForRowAndAlignment(
+          this.props,
+          rowIndex,
+          align,
+          scrollTop,
+          this._instanceProps,
+          horizontalScrollbarSize
+        ),
       });
     }
 
@@ -321,7 +314,7 @@ export default function createGridComponent({
 
     componentWillUnmount() {
       if (this._resetIsScrollingTimeoutId !== null) {
-        cancelTimeout(this._resetIsScrollingTimeoutId);
+        cancelTimeout(this._resetIsScrollingTimeoutId, this._outerRef);
       }
     }
 
@@ -397,11 +390,11 @@ export default function createGridComponent({
           ref: this._outerRefSetter,
           style: {
             position: 'relative',
-            height,
-            width,
+            height: `${height}px`,
+            width: `${width}px`,
             overflow: 'auto',
             WebkitOverflowScrolling: 'touch',
-            willChange: 'transform',
+            'will-change': 'transform',
             direction,
             ...style,
           },
@@ -410,9 +403,9 @@ export default function createGridComponent({
           children: items,
           ref: innerRef,
           style: {
-            height: estimatedTotalHeight,
+            height: `${estimatedTotalHeight}px`,
             pointerEvents: isScrolling ? 'none' : '',
-            width: estimatedTotalWidth,
+            width: `${estimatedTotalHeight}px`,
           },
         })
       );
@@ -719,12 +712,13 @@ export default function createGridComponent({
 
     _resetIsScrollingDebounced = () => {
       if (this._resetIsScrollingTimeoutId !== null) {
-        cancelTimeout(this._resetIsScrollingTimeoutId);
+        cancelTimeout(this._resetIsScrollingTimeoutId, this._outerRef);
       }
 
       this._resetIsScrollingTimeoutId = requestTimeout(
         this._resetIsScrolling,
-        IS_SCROLLING_DEBOUNCE_INTERVAL
+        IS_SCROLLING_DEBOUNCE_INTERVAL,
+        this._outerRef
       );
     };
 
@@ -754,8 +748,8 @@ const validateSharedProps = (
 ): void => {
   if (process.env.NODE_ENV !== 'production') {
     if (typeof overscanCount === 'number') {
-      if (devWarningsOverscanCount && !devWarningsOverscanCount.has(instance)) {
-        devWarningsOverscanCount.add(instance);
+      if (!((devWarningsOverscanCount: any): WeakSet<any>).has(instance)) {
+        ((devWarningsOverscanCount: any): WeakSet<any>).add(instance);
         console.warn(
           'The overscanCount prop has been deprecated. ' +
             'Please use the overscanColumnsCount and overscanRowsCount props instead.'
@@ -764,8 +758,8 @@ const validateSharedProps = (
     }
 
     if (innerTagName != null || outerTagName != null) {
-      if (devWarningsTagName && !devWarningsTagName.has(instance)) {
-        devWarningsTagName.add(instance);
+      if (!((devWarningsTagName: any): WeakSet<any>).has(instance)) {
+        ((devWarningsTagName: any): WeakSet<any>).add(instance);
         console.warn(
           'The innerTagName and outerTagName props have been deprecated. ' +
             'Please use the innerElementType and outerElementType props instead.'

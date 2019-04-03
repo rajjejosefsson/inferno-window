@@ -1,12 +1,13 @@
 import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
+import path from 'path';
 
 import pkg from './package.json';
 
 const input = './src/index.js';
 
-const external = id => !id.startsWith('.') && !id.startsWith('/');
+const external = id => !id.startsWith('.') && !path.isAbsolute(id);
 
 export default [
   {
@@ -25,7 +26,6 @@ export default [
       commonjs(),
     ],
   },
-
   {
     input,
     output: {
